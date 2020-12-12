@@ -33,7 +33,7 @@ func main() {
 	host	:= os.Getenv("DB_HOST")
 	port	:= os.Getenv("DB_PORT")
 	user	:= os.Getenv("DB_USER")
-	pw		:= os.Getenv("DB_USER_PASSWORD")
+	pw	:= os.Getenv("DB_USER_PASSWORD")
 	name	:= os.Getenv("DB_NAME")
 
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
@@ -85,13 +85,13 @@ func postRecordHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var record models.Record
 
 	err := json.NewDecoder(r.Body).Decode(&record)
-    if err != nil {
+    	if err != nil {
         log.Println(err)
 		http.Error(w, http.StatusText(400), 400)
 		return
 	}
 
-    err = models.SaveSingleRecord(db, record)
+    	err = models.SaveSingleRecord(db, record)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(500), 500)
@@ -99,7 +99,7 @@ func postRecordHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusCreated)
+    	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(http.StatusText(201)))
 
 }
@@ -145,13 +145,13 @@ func postRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var records []models.Record
 
 	err := json.NewDecoder(r.Body).Decode(&records)
-    if err != nil {
+    	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(400), 400)
 		return
 	}
 
-    err = models.SaveMultipleRecords(db, records)
+    	err = models.SaveMultipleRecords(db, records)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(500), 500)
@@ -159,7 +159,7 @@ func postRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusCreated)
+    	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(http.StatusText(201)))
 
 }
