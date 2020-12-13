@@ -3,22 +3,37 @@ package models
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/go-playground/validator/v10"
 )
 
 // Record struct for a single record
 type Record struct {
-	Date string `json:"date"`
-	Day string `json:"day"`
-	Month string `json:"month"`
-	Year string `json:"year"`
-	Cases int `json:"cases"`
-	Deaths int `json:"deaths"`
-	Country string `json:"country"`
-	GeoID string `json:"geoId"`
-	CountryCode string `json:"countryCode"`
-	Population int `json:"population"`
-	Continent string `json:"continent"`
-	Cumulative string `json:"cumulative"`
+	Date string `json:"dateRep" validate:"required"`
+	Day string `json:"day" validate:"required"`
+	Month string `json:"month" validate:"required"`
+	Year string `json:"year" validate:"required"`
+	Cases *int `json:"cases" validate:"required"`
+	Deaths *int `json:"deaths" validate:"required"`
+	Country string `json:"countriesAndTerritories" validate:"required"`
+	GeoID string `json:"geoId" validate:"required"`
+	CountryCode string `json:"countryterritoryCode" validate:"required"`
+	Population *int `json:"popData2019" validate:"required"`
+	Continent string `json:"continentExp" validate:"required"`
+	Cumulative string `json:"Cumulative_number_for_14_days_of_COVID-19_cases_per_100000" validate:"required"`
+}
+
+// Use a single instance of Validate
+var validate *validator.Validate
+
+// Validate validates the record struct
+func (record Record) Validate() error {
+	validate = validator.New()
+	err := validate.Struct(record)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetAllRecords returns all records from the database
