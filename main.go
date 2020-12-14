@@ -144,7 +144,24 @@ func getRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	ctx := r.Context()
 
-	records, err := models.GetAllRecords(ctx, db)
+	country := r.URL.Query().Get("country")
+	orderBy := r.URL.Query().Get("orderBy")
+	order := r.URL.Query().Get("order")
+
+	queryParams := models.QueryParams{
+		Country: country,
+		OrderBy: orderBy,
+		Order: order,
+	}
+
+	valid, invalid := queryParams.ValidateQueryParams()
+	if valid == false {
+		log.Printf("Invalid GET query parameter %s sent by %s", invalid, r.Host)
+		http.Error(w, fmt.Sprintf("Invalid GET query parameter value %s", invalid), 400)
+		return
+	}
+
+	records, err := models.GetAllRecords(ctx, db, &queryParams)
 
 	if err != nil {
         log.Println(err)

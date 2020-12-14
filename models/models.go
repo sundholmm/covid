@@ -38,13 +38,67 @@ func (record Record) Validate() error {
 	return nil
 }
 
+// Constants for defining allowed GET parameter values
+const (
+	OrderASC = "ASC"
+	OrderDesc = "DESC"
+	OrderByDate = "date"
+	OrderByCases = "cases"
+	OrderByDeaths = "deaths"
+	OrderByCountry = "country"
+	OrderByPopulation = "population"
+	OrderByCumulative = "cumulative"
+)
+
+// QueryParams struct for a single record
+type QueryParams struct {
+	Country string
+	OrderBy string
+	Order string
+}
+
+// ValidateQueryParams validates all the GET parameters against the defined constants
+// returns bool indicating the valid status and string with the invalid value
+func (queryParams QueryParams) ValidateQueryParams() (bool, string) {
+
+	if	queryParams.OrderBy != OrderByDate && queryParams.OrderBy != OrderByCases &&
+		queryParams.OrderBy != OrderByDeaths && queryParams.OrderBy != OrderByCountry &&
+		queryParams.OrderBy != OrderByPopulation && queryParams.OrderBy != "" {
+			return false, queryParams.OrderBy
+	}
+
+	if queryParams.Order != OrderASC && queryParams.Order != OrderDesc && queryParams.Order != "" {
+		return false, queryParams.Order
+	}
+
+	return true, ""
+
+}
+
+func (queryParams QueryParams) getQueryString() (string) {
+
+	var whereCountry string
+	var orderBy string
+
+	if queryParams.Country != "" {
+		whereCountry = fmt.Sprintf(" WHERE \"country\"='%s' ", queryParams.Country)
+	}
+
+	if queryParams.OrderBy != "" && queryParams.Order != "" {
+		orderBy = fmt.Sprintf(" ORDER BY \"%s\" %s", queryParams.OrderBy, queryParams.Order)
+	}
+
+	return whereCountry + orderBy
+
+}
+
 // GetAllRecords returns all records from the database
-func GetAllRecords(ctx context.Context, db *sql.DB) ([]Record, error) {
+func GetAllRecords(ctx context.Context, db *sql.DB, queryParams *QueryParams) ([]Record, error) {
 
 	rows, err := db.QueryContext(ctx, "SELECT " +
 	"\"date\", \"day\", \"month\", \"year\", \"cases\", \"deaths\", \"country\", " +
 	"\"geo_id\", \"country_code\", \"population\", \"continent\", \"cumulative\" " +
-	"FROM \"record\"")
+	"FROM \"record\"" + queryParams.getQueryString() + ";")
 
     if err != nil {
         return nil, err
@@ -94,7 +148,7 @@ func SaveSingleRecord(ctx context.Context, db *sql.DB, record Record, index int)
 	sql := fmt.Sprintf("INSERT INTO \"record\" ( " +
 	"\"date\", \"day\", \"month\", \"year\", \"cases\", \"deaths\", \"country\", " +
 	"\"geo_id\", \"country_code\", \"population\", \"continent\", \"cumulative\" " +
-	") VALUES ( '%s', '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', %d, '%s', '%s' )",
+	") VALUES ( '%s', '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', %d, '%s', '%s' );",
 	record.Date, record.Day, record.Month, record.Year, *record.Cases,
 	*record.Deaths, record.Country, record.GeoID, record.CountryCode,
 	record.Population, record.Continent, record.Cumulative)
