@@ -73,10 +73,11 @@ func main() {
 func (env *Env) recordHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
-	case http.MethodPost:
-		postRecordHandler(w, r, env.db)
-	default:
-		http.Error(w, http.StatusText(501), 501)
+		case http.MethodPost:
+			postRecordHandler(w, r, env.db)
+		default:
+			log.Printf("recordHandler called with not yet implemented method %s by %s", r.Method, r.Host)
+			http.Error(w, http.StatusText(501), 501)
 	}
 
 }
@@ -84,7 +85,12 @@ func (env *Env) recordHandler(w http.ResponseWriter, r *http.Request) {
 // postRecordHandler handles the HTTP POST requests on path /record
 func postRecordHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
+	log.Printf("postRecordHandler called by %s", r.Host)
+	defer log.Printf("postRecordHandler called by %s ended", r.Host)
+
 	var record models.Record
+
+	index := 1
 
 	err := json.NewDecoder(r.Body).Decode(&record)
 	if err != nil {
@@ -100,14 +106,13 @@ func postRecordHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	err = models.SaveSingleRecord(db, record)
+	err = models.SaveSingleRecord(db, record, index)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(500), 500)
 		return
 	}
 
-	log.Printf("postRecordHandler called by %s", r.Host)
 	w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(http.StatusText(201)))
@@ -123,6 +128,7 @@ func (env *Env) recordsHandler(w http.ResponseWriter, r *http.Request) {
 		case http.MethodPost:
 			postRecordsHandler(w, r, env.db)
 		default:
+			log.Printf("recordsHandler called with not yet implemented method %s by %s", r.Method, r.Host)
 			http.Error(w, http.StatusText(501), 501)
 	}
 
@@ -130,6 +136,9 @@ func (env *Env) recordsHandler(w http.ResponseWriter, r *http.Request) {
 
 // getRecordsHandler handles the HTTP GET requests on path /records
 func getRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+
+	log.Printf("getRecordsHandler called by %s", r.Host)
+	defer log.Printf("getRecordsHandler called by %s ended", r.Host)
 
 	records, err := models.GetAllRecords(db)
 
@@ -144,7 +153,6 @@ func getRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	log.Printf("getRecordsHandler called by %s", r.Host)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(records)
 
@@ -155,6 +163,9 @@ func postRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	var records []models.Record
 
+	log.Printf("postRecordsHandler called by %s", r.Host)
+	defer log.Printf("postRecordsHandler called by %s ended", r.Host)
+
 	err := json.NewDecoder(r.Body).Decode(&records)
 	if err != nil {
 		log.Println(err)
@@ -162,13 +173,14 @@ func postRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	for _, record := range records {
+	for index, record := range records {
 		err = record.Validate()
 		if err != nil {
 			log.Println(err)
 			http.Error(w, http.StatusText(400), 400)
 			return
 		}
+		log.Printf("Record #%d validate successful", index)
 	}
 
 	err = models.SaveMultipleRecords(db, records)
@@ -178,7 +190,6 @@ func postRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	log.Printf("postRecordsHandler called by %s", r.Host)
 	w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(http.StatusText(201)))
