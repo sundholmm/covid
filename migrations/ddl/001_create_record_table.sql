@@ -1,6 +1,6 @@
 CREATE SEQUENCE IF NOT EXISTS record_id_seq;
 
-CREATE TABLE record (
+CREATE TABLE IF NOT EXISTS record (
 	"id" integer PRIMARY KEY NOT NULL DEFAULT nextval('record_id_seq'),
 	"date" varchar(256) NULL,
 	"day" varchar(256) NULL,
@@ -15,3 +15,6 @@ CREATE TABLE record (
 	"continent" varchar(256) NULL,
 	"cumulative" varchar(256) NULL
 );
+
+CREATE INDEX IF NOT EXISTS record_index ON record ("id", "date", "day", "month", "year", "cases", "deaths", "country", "geo_id",
+"country_code", "population", "continent", "cumulative");
