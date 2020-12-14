@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -18,8 +19,8 @@ type Record struct {
 	Deaths *int `json:"deaths,omitempty"`
 	Country string `json:"countriesAndTerritories" validate:"required"`
 	GeoID string `json:"geoId" validate:"required"`
-	CountryCode string `json:"countryterritoryCode" validate:"required"`
-	Population *int `json:"popData2019,omitempty"`
+	CountryCode string `json:"countryterritoryCode"`
+	Population int `json:"popData2019"`
 	Continent string `json:"continentExp" validate:"required"`
 	Cumulative string `json:"Cumulative_number_for_14_days_of_COVID-19_cases_per_100000,omitempty"`
 }
@@ -38,9 +39,9 @@ func (record Record) Validate() error {
 }
 
 // GetAllRecords returns all records from the database
-func GetAllRecords(db *sql.DB) ([]Record, error) {
+func GetAllRecords(ctx context.Context, db *sql.DB) ([]Record, error) {
 
-	rows, err := db.Query("SELECT " +
+	rows, err := db.QueryContext(ctx, "SELECT " +
 	"\"date\", \"day\", \"month\", \"year\", \"cases\", \"deaths\", \"country\", " +
 	"\"geo_id\", \"country_code\", \"population\", \"continent\", \"cumulative\" " +
 	"FROM \"record\"")
@@ -88,7 +89,7 @@ func GetAllRecords(db *sql.DB) ([]Record, error) {
 }
 
 // SaveSingleRecord saves single record into the database
-func SaveSingleRecord(db *sql.DB, record Record, index int) (error) {
+func SaveSingleRecord(ctx context.Context, db *sql.DB, record Record, index int) (error) {
 
 	sql := fmt.Sprintf("INSERT INTO \"record\" ( " +
 	"\"date\", \"day\", \"month\", \"year\", \"cases\", \"deaths\", \"country\", " +
@@ -96,9 +97,9 @@ func SaveSingleRecord(db *sql.DB, record Record, index int) (error) {
 	") VALUES ( '%s', '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', %d, '%s', '%s' )",
 	record.Date, record.Day, record.Month, record.Year, *record.Cases,
 	*record.Deaths, record.Country, record.GeoID, record.CountryCode,
-	*record.Population, record.Continent, record.Cumulative)
+	record.Population, record.Continent, record.Cumulative)
 
-	_, err := db.Exec(sql)
+	_, err := db.ExecContext(ctx, sql)
 	if err != nil {
 		return err
 	}
@@ -110,11 +111,11 @@ func SaveSingleRecord(db *sql.DB, record Record, index int) (error) {
 }
 
 // SaveMultipleRecords saves multiple records into the database
-func SaveMultipleRecords(db *sql.DB, records []Record) (error) {
+func SaveMultipleRecords(ctx context.Context, db *sql.DB, records []Record) (error) {
 
 	log.Printf("Number of records to save: #%d", len(records))
 	for index, record := range records {
-		err := SaveSingleRecord(db, record, index)
+		err := SaveSingleRecord(ctx, db, record, index)
 		if err != nil {
 			return err
 		}

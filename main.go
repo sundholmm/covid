@@ -88,6 +88,8 @@ func postRecordHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	log.Printf("postRecordHandler called by %s", r.Host)
 	defer log.Printf("postRecordHandler called by %s ended", r.Host)
 
+	ctx := r.Context()
+
 	var record models.Record
 
 	index := 1
@@ -106,7 +108,7 @@ func postRecordHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	err = models.SaveSingleRecord(db, record, index)
+	err = models.SaveSingleRecord(ctx, db, record, index)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(500), 500)
@@ -140,7 +142,9 @@ func getRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	log.Printf("getRecordsHandler called by %s", r.Host)
 	defer log.Printf("getRecordsHandler called by %s ended", r.Host)
 
-	records, err := models.GetAllRecords(db)
+	ctx := r.Context()
+
+	records, err := models.GetAllRecords(ctx, db)
 
 	if err != nil {
         log.Println(err)
@@ -161,10 +165,12 @@ func getRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 // postRecordsHandler handles the HTTP POST requests on path /records
 func postRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
-	var records []models.Record
-
 	log.Printf("postRecordsHandler called by %s", r.Host)
 	defer log.Printf("postRecordsHandler called by %s ended", r.Host)
+
+	ctx := r.Context()
+	
+	var records []models.Record
 
 	err := json.NewDecoder(r.Body).Decode(&records)
 	if err != nil {
@@ -183,7 +189,7 @@ func postRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		log.Printf("Record #%d validate successful", index)
 	}
 
-	err = models.SaveMultipleRecords(db, records)
+	err = models.SaveMultipleRecords(ctx, db, records)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(500), 500)
