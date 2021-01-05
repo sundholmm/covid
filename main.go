@@ -154,7 +154,7 @@ func getRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		Order: order,
 	}
 
-	valid, invalid := queryParams.ValidateQueryParams()
+	valid, invalid := queryParams.ValidateQueryParams(ctx, db)
 	if valid == false {
 		log.Printf("Invalid GET query parameter %s sent by %s", invalid, r.Host)
 		http.Error(w, fmt.Sprintf("Invalid GET query parameter value %s", invalid), 400)

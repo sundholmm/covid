@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -57,7 +58,20 @@ type QueryParams struct {
 
 // ValidateQueryParams validates all the GET parameters against the defined constants
 // returns bool indicating the valid status and string with the invalid value
-func (queryParams QueryParams) ValidateQueryParams() (bool, string) {
+func (queryParams QueryParams) ValidateQueryParams(ctx context.Context, db *sql.DB) (bool, string) {
+
+	if queryParams.Country != "" {
+		countries, err := getAllCountries(ctx, db,)
+		if err != nil {
+			return false, queryParams.Country
+		}
+		for _, country := range countries {
+			if country == strings.ToUpper(queryParams.Country) {
+				return true, ""
+			}
+		}
+		return false, queryParams.Country
+	}
 
 	if	queryParams.OrderBy != OrderByDate && queryParams.OrderBy != OrderByCasesWeekly &&
 		queryParams.OrderBy != OrderByDeathsWeekly && queryParams.OrderBy != OrderByCountry &&
@@ -73,13 +87,14 @@ func (queryParams QueryParams) ValidateQueryParams() (bool, string) {
 
 }
 
+// getQueryString returns an SQL string conditionally based on the search parameters
 func (queryParams QueryParams) getQueryString() (string) {
 
 	var whereCountry string
 	var orderBy string
 
 	if queryParams.Country != "" {
-		whereCountry = fmt.Sprintf(" WHERE \"country\"='%s' ", queryParams.Country)
+		whereCountry = fmt.Sprintf(" WHERE UPPER(\"country\")='%s' ", strings.ToUpper(queryParams.Country))
 	}
 
 	if queryParams.OrderBy != "" && queryParams.Order != "" {
@@ -87,6 +102,39 @@ func (queryParams QueryParams) getQueryString() (string) {
 	}
 
 	return whereCountry + orderBy
+
+}
+
+// getAllCountries returns all countries from the database that have records saved
+func getAllCountries(ctx context.Context, db *sql.DB) ([]string, error) {
+	
+	rows, err := db.QueryContext(ctx, "SELECT DISTINCT UPPER(\"country\") FROM record;");
+    if err != nil {
+        return nil, err
+	}
+
+    defer rows.Close()
+
+    var countries []string
+
+    for rows.Next() {
+
+        var country string
+
+        err := rows.Scan(&country)
+        if err != nil {
+            return nil, err
+        }
+
+		countries = append(countries, country)
+
+	}
+
+    if err = rows.Err(); err != nil {
+        return nil, err
+    }
+
+    return countries, nil
 
 }
 
