@@ -64,7 +64,7 @@ Currently supported HTTP GET query parameters are as listed:
 
 - country
 - orderBy
-- order.
+- order
 
 For order the values are:
 
@@ -77,11 +77,11 @@ For orderBy the values are:
 
 ```
 OrderByDate = "date"
-OrderByCases = "cases"
-OrderByDeaths = "deaths"
+OrderByCasesWeekly = "cases_weekly"
+OrderByDeathsWeekly = "deaths_weekly"
 OrderByCountry = "country"
 OrderByPopulation = "population"
-OrderByCumulative = "cumulative"
+OrderByNotificationRate = "notification_rate"
 ```
 
 ## Environmental variables

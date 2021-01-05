@@ -12,17 +12,15 @@ import (
 // Record struct for a single record
 type Record struct {
 	Date string `json:"dateRep" validate:"required"`
-	Day string `json:"day" validate:"required"`
-	Month string `json:"month" validate:"required"`
-	Year string `json:"year" validate:"required"`
-	Cases *int `json:"cases,omitempty"`
-	Deaths *int `json:"deaths,omitempty"`
+	YearWeek string `json:"year_week" validate:"required"`
+	CasesWeekly *int `json:"cases_weekly,omitempty"`
+	DeathsWeekly *int `json:"deaths_weekly,omitempty"`
 	Country string `json:"countriesAndTerritories" validate:"required"`
 	GeoID string `json:"geoId" validate:"required"`
 	CountryCode string `json:"countryterritoryCode"`
 	Population int `json:"popData2019"`
 	Continent string `json:"continentExp" validate:"required"`
-	Cumulative string `json:"Cumulative_number_for_14_days_of_COVID-19_cases_per_100000,omitempty"`
+	NotificationRate string `json:"notification_rate_per_100000_population_14-days,omitempty"`
 }
 
 // Use a single instance of Validate
@@ -43,11 +41,11 @@ const (
 	OrderASC = "ASC"
 	OrderDesc = "DESC"
 	OrderByDate = "date"
-	OrderByCases = "cases"
-	OrderByDeaths = "deaths"
+	OrderByCasesWeekly = "cases_weekly"
+	OrderByDeathsWeekly = "deaths_weekly"
 	OrderByCountry = "country"
 	OrderByPopulation = "population"
-	OrderByCumulative = "cumulative"
+	OrderByNotificationRate = "notification_rate"
 )
 
 // QueryParams struct for a single record
@@ -61,8 +59,8 @@ type QueryParams struct {
 // returns bool indicating the valid status and string with the invalid value
 func (queryParams QueryParams) ValidateQueryParams() (bool, string) {
 
-	if	queryParams.OrderBy != OrderByDate && queryParams.OrderBy != OrderByCases &&
-		queryParams.OrderBy != OrderByDeaths && queryParams.OrderBy != OrderByCountry &&
+	if	queryParams.OrderBy != OrderByDate && queryParams.OrderBy != OrderByCasesWeekly &&
+		queryParams.OrderBy != OrderByDeathsWeekly && queryParams.OrderBy != OrderByCountry &&
 		queryParams.OrderBy != OrderByPopulation && queryParams.OrderBy != "" {
 			return false, queryParams.OrderBy
 	}
@@ -96,8 +94,8 @@ func (queryParams QueryParams) getQueryString() (string) {
 func GetAllRecords(ctx context.Context, db *sql.DB, queryParams *QueryParams) ([]Record, error) {
 
 	rows, err := db.QueryContext(ctx, "SELECT " +
-	"\"date\", \"day\", \"month\", \"year\", \"cases\", \"deaths\", \"country\", " +
-	"\"geo_id\", \"country_code\", \"population\", \"continent\", \"cumulative\" " +
+	"\"date\", \"year_week\", \"cases_weekly\", \"deaths_weekly\", \"country\", " +
+	"\"geo_id\", \"country_code\", \"population\", \"continent\", \"notification_rate\" " +
 	"FROM \"record\"" + queryParams.getQueryString() + ";")
 
     if err != nil {
@@ -114,17 +112,15 @@ func GetAllRecords(ctx context.Context, db *sql.DB, queryParams *QueryParams) ([
 
         err := rows.Scan(
 			&record.Date,
-			&record.Day,
-			&record.Month,
-			&record.Year,
-			&record.Cases,
-			&record.Deaths,
+			&record.YearWeek,
+			&record.CasesWeekly,
+			&record.DeathsWeekly,
 			&record.Country,
 			&record.GeoID,
 			&record.CountryCode,
 			&record.Population,
 			&record.Continent,
-			&record.Cumulative,
+			&record.NotificationRate,
 		)
 
         if err != nil {
@@ -146,12 +142,12 @@ func GetAllRecords(ctx context.Context, db *sql.DB, queryParams *QueryParams) ([
 func SaveSingleRecord(ctx context.Context, db *sql.DB, record Record, index int) (error) {
 
 	sql := fmt.Sprintf("INSERT INTO \"record\" ( " +
-	"\"date\", \"day\", \"month\", \"year\", \"cases\", \"deaths\", \"country\", " +
-	"\"geo_id\", \"country_code\", \"population\", \"continent\", \"cumulative\" " +
-	") VALUES ( '%s', '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', %d, '%s', '%s' );",
-	record.Date, record.Day, record.Month, record.Year, *record.Cases,
-	*record.Deaths, record.Country, record.GeoID, record.CountryCode,
-	record.Population, record.Continent, record.Cumulative)
+	"\"date\", \"year_week\", \"cases_weekly\", \"deaths_weekly\", \"country\", " +
+	"\"geo_id\", \"country_code\", \"population\", \"continent\", \"notification_rate\" " +
+	") VALUES ( '%s', '%s', %d, %d, '%s', '%s', '%s', %d, '%s', '%s' );",
+	record.Date, record.YearWeek, *record.CasesWeekly,
+	*record.DeathsWeekly, record.Country, record.GeoID, record.CountryCode,
+	record.Population, record.Continent, record.NotificationRate)
 
 	_, err := db.ExecContext(ctx, sql)
 	if err != nil {
