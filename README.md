@@ -2,6 +2,13 @@
 
 Go REST API with underlying PostgreSQL database for handling COVID-19 records.
 
+```
+$ git clone https://github.com/sundholmm/covid.git
+$ cd covid
+$ go build
+$ ./covid.sundholm.io
+```
+
 ## API
 
 Currently the application serves the paths below:
@@ -103,7 +110,7 @@ For initializing the application be sure these variables are in place:
 ## Migrations
 
 DDL migrations (.sql files) should be placed under migrations\ddl and they'll be run when the application starts
-Prefix the migrations files as 001, 002, 003, ..., 999 and add a description with underscores
+Prefix the migrations files as 001, 002, 003, ..., 999 and add a description with underscores.
 
 Example:
 
@@ -121,7 +128,7 @@ Example:
 
 [COVID-19 Coronavirus data](https://data.europa.eu/euodp/en/data/dataset/covid-19-coronavirus-data)
 
-Can be applied to the database by running the application and then executing
+Can be applied to the database by running the application and then executing:
 
 ```
 $ python utils\migrate.py
