@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -21,6 +22,18 @@ type Record struct {
 	Population int `json:"popData2019"`
 	Continent string `json:"continentExp" validate:"required"`
 	NotificationRate string `json:"notification_rate_per_100000_population_14-days,omitempty"`
+}
+
+// RequestError represents an error with an associated HTTP status code, time of the event and an error string
+type RequestError struct {
+	StatusCode int
+	TimeStamp time.Time
+	Err string
+}
+
+// Error allows RequestError to satisfy the error interface
+func (r RequestError) Error() string {
+	return fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d - %s", r.TimeStamp.Year(), r.TimeStamp.Month(), r.TimeStamp.Day(), r.TimeStamp.Hour(), r.TimeStamp.Minute(), r.TimeStamp.Second(), r.Err)
 }
 
 // Use a single instance of Validate
@@ -57,33 +70,40 @@ type QueryParams struct {
 
 // ValidateQueryParams validates all the GET parameters against the defined constants
 // returns bool indicating the valid status and string with the invalid value
-func (queryParams QueryParams) ValidateQueryParams(ctx context.Context, db *sql.DB) (bool, string) {
+func (queryParams QueryParams) ValidateQueryParams(ctx context.Context, db *sql.DB) (error) {
 
 	if queryParams.Country != "" {
 		countries, err := getAllCountries(ctx, db,)
 		if err != nil {
-			return false, queryParams.Country
+			return RequestError{500, time.Now(), err.Error()}
 		}
-		for _, country := range countries {
-			if country == queryParams.Country {
-				return true, ""
-			}
+		if !stringInSlice(queryParams.Country, countries) {
+			return RequestError{404, time.Now(), "Query parameter country not found"}
 		}
-		return false, queryParams.Country
 	}
 
 	if	queryParams.OrderBy != OrderByDate && queryParams.OrderBy != OrderByCasesWeekly &&
 		queryParams.OrderBy != OrderByDeathsWeekly && queryParams.OrderBy != OrderByCountry &&
 		queryParams.OrderBy != OrderByPopulation && queryParams.OrderBy != "" {
-			return false, queryParams.OrderBy
+			return RequestError{400, time.Now(), fmt.Sprintf("Invalid query parameter orderBy: %s", queryParams.OrderBy)}
 	}
 
 	if queryParams.Order != OrderASC && queryParams.Order != OrderDesc && queryParams.Order != "" {
-		return false, queryParams.Order
+		return RequestError{400, time.Now(), fmt.Sprintf("Invalid query parameter order: %s", queryParams.Order)}
 	}
 
-	return true, ""
+	return nil
 
+}
+
+// stringInSlice is an utility function for checking if an array contains a string
+func stringInSlice(a string, list []string) bool {
+    for _, b := range list {
+        if b == a {
+            return true
+        }
+    }
+    return false
 }
 
 // getQueryString returns an SQL string conditionally based on the search parameters
