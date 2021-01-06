@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 
@@ -148,10 +149,11 @@ func getRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	orderBy := r.URL.Query().Get("orderBy")
 	order := r.URL.Query().Get("order")
 
+	// Uppercase and lowercase letters are treated as equivalent (case-insensitive)
 	queryParams := models.QueryParams{
-		Country: country,
-		OrderBy: orderBy,
-		Order: order,
+		Country: strings.ToLower(country),
+		OrderBy: strings.ToLower(orderBy),
+		Order: strings.ToLower(order),
 	}
 
 	valid, invalid := queryParams.ValidateQueryParams(ctx, db)

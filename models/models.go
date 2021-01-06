@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -39,8 +38,8 @@ func (record Record) Validate() error {
 
 // Constants for defining allowed GET parameter values
 const (
-	OrderASC = "ASC"
-	OrderDesc = "DESC"
+	OrderASC = "asc"
+	OrderDesc = "desc"
 	OrderByDate = "date"
 	OrderByCasesWeekly = "cases_weekly"
 	OrderByDeathsWeekly = "deaths_weekly"
@@ -66,7 +65,7 @@ func (queryParams QueryParams) ValidateQueryParams(ctx context.Context, db *sql.
 			return false, queryParams.Country
 		}
 		for _, country := range countries {
-			if country == strings.ToUpper(queryParams.Country) {
+			if country == queryParams.Country {
 				return true, ""
 			}
 		}
@@ -94,7 +93,7 @@ func (queryParams QueryParams) getQueryString() (string) {
 	var orderBy string
 
 	if queryParams.Country != "" {
-		whereCountry = fmt.Sprintf(" WHERE UPPER(\"country\")='%s' ", strings.ToUpper(queryParams.Country))
+		whereCountry = fmt.Sprintf(" WHERE LOWER(\"country\")='%s' ", queryParams.Country)
 	}
 
 	if queryParams.OrderBy != "" && queryParams.Order != "" {
@@ -108,7 +107,7 @@ func (queryParams QueryParams) getQueryString() (string) {
 // getAllCountries returns all countries from the database that have records saved
 func getAllCountries(ctx context.Context, db *sql.DB) ([]string, error) {
 	
-	rows, err := db.QueryContext(ctx, "SELECT DISTINCT UPPER(\"country\") FROM record;");
+	rows, err := db.QueryContext(ctx, "SELECT DISTINCT LOWER(\"country\") FROM record;");
     if err != nil {
         return nil, err
 	}
