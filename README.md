@@ -113,7 +113,7 @@ For initializing the application be sure these variables are in place:
 
 ## Database setup
 
-[Docker postgres](https://hub.docker.com/_/postgres)
+[Docker postgres](https://hub.docker.com/_/postgres) ([or for Windows without Docker](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads))
 
 ## Migrations
 
