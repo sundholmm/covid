@@ -73,22 +73,30 @@ Currently supported HTTP GET query parameters are as listed:
 - orderBy
 - order
 
+For country there are currently 214 countries in the dataset with spaces as underscores:
+
+```
+"United_Kingdom"
+"Australia"
+"United_Arab_Emirates"
+```
+
 For order the values are:
 
 ```
-OrderASC = "ASC"
-OrderDesc = "DESC"
+"ASC"
+"DESC"
 ```
 
 For orderBy the values are:
 
 ```
-OrderByDate = "date"
-OrderByCasesWeekly = "cases_weekly"
-OrderByDeathsWeekly = "deaths_weekly"
-OrderByCountry = "country"
-OrderByPopulation = "population"
-OrderByNotificationRate = "notification_rate"
+"date"
+"cases_weekly"
+"deaths_weekly"
+"country"
+"population"
+"notification_rate"
 ```
 
 ## Environmental variables
