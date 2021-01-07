@@ -17,7 +17,7 @@ func MigrateDB(db *sql.DB) {
 
 	// Create the migration table
 	_, err := db.Exec("CREATE SEQUENCE IF NOT EXISTS migration_id_seq; " +
-		"CREATE TABLE IF NOT EXISTS \"migration\" " + 
+		"CREATE TABLE IF NOT EXISTS \"migration\" " +
 		"( id integer PRIMARY KEY NOT NULL DEFAULT nextval('migration_id_seq'), version varchar(256), summary varchar(256) )")
 	if err != nil {
 		log.Println(err)
@@ -100,11 +100,11 @@ func readMetadata(db *sql.DB) []string {
 // writeMetadata writes all the metadata of migrations to migration table
 func writeMetadata(db *sql.DB, filename string) {
 
-		result, err := db.Exec("INSERT INTO \"migration\" (\"version\", \"summary\") " +
+	result, err := db.Exec("INSERT INTO \"migration\" (\"version\", \"summary\") " +
 		"VALUES ('" + filename[0:3] + "', '" + strings.TrimSuffix(filename[4:], ".sql") + "')")
-		if err != nil {
-			log.Printf("Database ERROR %s %s", err, result)
-		}
+	if err != nil {
+		log.Printf("Database ERROR %s %s", err, result)
+	}
 
 }
 

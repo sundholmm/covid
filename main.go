@@ -158,6 +158,7 @@ func getRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	err := queryParams.ValidateQueryParams(ctx, db)
 	if err != nil {
+		log.Println(err)
 		r := err.(models.RequestError)
 		http.Error(w, r.Error(), r.StatusCode)
 		return
@@ -211,7 +212,8 @@ func postRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	err = models.SaveMultipleRecords(ctx, db, records)
 	if err != nil {
 		log.Println(err)
-		http.Error(w, http.StatusText(500), 500)
+		r := err.(models.RequestError)
+		http.Error(w, r.Error(), r.StatusCode)
 		return
 	}
 
