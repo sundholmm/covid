@@ -12,6 +12,17 @@ import (
 	"github.com/lib/pq"
 )
 
+// RecordDTO struct for multiple records and metadata
+type RecordDTO struct {
+	Records []Record `json:"records" validate:"required"`
+	Meta    Metadata `json:"metadata,omitempty"`
+}
+
+// Metadata struct for RecordDTO metadata
+type Metadata struct {
+	RecordAmount int `json:"record_amount" validate:"required"`
+}
+
 // Record struct for a single record
 type Record struct {
 	Date             string `json:"dateRep" validate:"required"`
@@ -163,8 +174,8 @@ func getAllCountries(ctx context.Context, db *sql.DB) ([]string, error) {
 
 }
 
-// GetAllRecords returns all records from the database
-func GetAllRecords(ctx context.Context, db *sql.DB, queryParams *QueryParams) ([]Record, error) {
+// GetRecords returns all records from the database
+func GetRecords(ctx context.Context, db *sql.DB, queryParams *QueryParams) (*RecordDTO, error) {
 
 	rows, err := db.QueryContext(ctx, "SELECT "+
 		"\"date\", \"year_week\", \"cases_weekly\", \"deaths_weekly\", \"country\", "+
@@ -208,37 +219,22 @@ func GetAllRecords(ctx context.Context, db *sql.DB, queryParams *QueryParams) ([
 		return nil, err
 	}
 
-	return records, nil
-}
-
-// SaveSingleRecord saves single record into the database
-func SaveSingleRecord(ctx context.Context, db *sql.DB, record Record, index int) error {
-
-	sql := fmt.Sprintf("INSERT INTO \"record\" ( "+
-		"\"date\", \"year_week\", \"cases_weekly\", \"deaths_weekly\", \"country\", "+
-		"\"geo_id\", \"country_code\", \"population\", \"continent\", \"notification_rate\" "+
-		") VALUES ( '%s', '%s', %d, %d, '%s', '%s', '%s', %d, '%s', '%s' );",
-		record.Date, record.YearWeek, *record.CasesWeekly,
-		*record.DeathsWeekly, record.Country, record.GeoID, record.CountryCode,
-		record.Population, record.Continent, record.NotificationRate)
-
-	_, err := db.ExecContext(ctx, sql)
-	if err != nil {
-		return err
+	recordDTO := RecordDTO{
+		Records: records,
+		Meta: Metadata{
+			RecordAmount: len(records),
+		},
 	}
 
-	log.Printf("Record number #%d save successful", index)
-
-	return nil
-
+	return &recordDTO, nil
 }
 
-// SaveMultipleRecords saves multiple records into the database
-func SaveMultipleRecords(ctx context.Context, db *sql.DB, records []Record) error {
+// SaveRecords saves an array of records into the database
+func SaveRecords(ctx context.Context, db *sql.DB, recordDTO RecordDTO) error {
 
 	requestError := RequestError{500, time.Now(), http.StatusText(500)}
 
-	log.Printf("Number of records to save: %d", len(records))
+	log.Printf("Number of records to save: %d", len(recordDTO.Records))
 
 	txn, err := db.Begin()
 	if err != nil {
@@ -250,7 +246,7 @@ func SaveMultipleRecords(ctx context.Context, db *sql.DB, records []Record) erro
 		return requestError
 	}
 
-	for _, record := range records {
+	for _, record := range recordDTO.Records {
 		_, err = stmt.ExecContext(ctx, record.Date, record.YearWeek, record.CasesWeekly, record.DeathsWeekly, record.Country, record.GeoID, record.CountryCode, record.Population, record.Continent, record.NotificationRate)
 		if err != nil {
 			return requestError
@@ -272,7 +268,7 @@ func SaveMultipleRecords(ctx context.Context, db *sql.DB, records []Record) erro
 		return requestError
 	}
 
-	log.Printf("Successfully saved %d records", len(records))
+	log.Printf("Successfully saved %d records", len(recordDTO.Records))
 
 	return nil
 

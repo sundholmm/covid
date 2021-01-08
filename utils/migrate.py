@@ -12,4 +12,4 @@ if not records.is_file():
 
 with open(records) as data_file:
     data = load(data_file)
-    post('http://localhost:8080/api/v1/records', data = dumps(data["records"]))
+    post('http://localhost:8080/api/v1/records', data = dumps(data))

@@ -11,61 +11,81 @@ $ ./covid.sundholm.io
 
 ## API
 
+The endpoints are compatible between each other and as such the JSON objects are directly forwardable.
 Currently the application serves the paths below:
-
-### HTTP POST /api/v1/record
-
-Save a record to the database.
-
-```
-{
-    "dateRep" : "28/12/2020",
-    "year_week" : "2020-52",
-    "cases_weekly" : 1994,
-    "deaths_weekly" : 88,
-    "countriesAndTerritories" : "Afghanistan",
-    "geoId" : "AF",
-    "countryterritoryCode" : "AFG",
-    "popData2019" : 38041757,
-    "continentExp" : "Asia",
-    "notification_rate_per_100000_population_14-days" : "7.19"
-}
-```
 
 ### HTTP POST /api/v1/records
 
-Save multiple records to the database.
+Save an array of records to the database.
 
 ```
 {
-    "dateRep" : "28/12/2020",
-    "year_week" : "2020-52",
-    "cases_weekly" : 1994,
-    "deaths_weekly" : 88,
-    "countriesAndTerritories" : "Afghanistan",
-    "geoId" : "AF",
-    "countryterritoryCode" : "AFG",
-    "popData2019" : 38041757,
-    "continentExp" : "Asia",
-    "notification_rate_per_100000_population_14-days" : "7.19"
-},
-{
-    "dateRep" : "21/12/2020",
-    "year_week" : "2020-51",
-    "cases_weekly" : 740,
-    "deaths_weekly" : 111,
-    "countriesAndTerritories" : "Afghanistan",
-    "geoId" : "AF",
-    "countryterritoryCode" : "AFG",
-    "popData2019" : 38041757,
-    "continentExp" : "Asia",
-    "notification_rate_per_100000_population_14-days" : "6.56"
+   "records":[
+      {
+         "dateRep":"14/12/2020",
+         "year_week":"2020-50",
+         "cases_weekly":3179,
+         "deaths_weekly":46,
+         "countriesAndTerritories":"Finland",
+         "geoId":"FI",
+         "countryterritoryCode":"FIN",
+         "popData2019":5517919,
+         "continentExp":"Europe",
+         "notification_rate_per_100000_population_14-days":"112.02"
+      },
+      {
+         "dateRep":"07/12/2020",
+         "year_week":"2020-49",
+         "cases_weekly":3002,
+         "deaths_weekly":22,
+         "countriesAndTerritories":"Finland",
+         "geoId":"FI",
+         "countryterritoryCode":"FIN",
+         "popData2019":5517919,
+         "continentExp":"Europe",
+         "notification_rate_per_100000_population_14-days":"108.59"
+      }
+   ]
 }
 ```
 
 ### HTTP GET /api/v1/records
 
 Get records from the database.
+
+```
+{
+   "records":[
+      {
+         "dateRep":"14/12/2020",
+         "year_week":"2020-50",
+         "cases_weekly":3179,
+         "deaths_weekly":46,
+         "countriesAndTerritories":"Finland",
+         "geoId":"FI",
+         "countryterritoryCode":"FIN",
+         "popData2019":5517919,
+         "continentExp":"Europe",
+         "notification_rate_per_100000_population_14-days":"112.02"
+      },
+      {
+         "dateRep":"07/12/2020",
+         "year_week":"2020-49",
+         "cases_weekly":3002,
+         "deaths_weekly":22,
+         "countriesAndTerritories":"Finland",
+         "geoId":"FI",
+         "countryterritoryCode":"FIN",
+         "popData2019":5517919,
+         "continentExp":"Europe",
+         "notification_rate_per_100000_population_14-days":"108.59"
+      }
+   ],
+   "metadata":{
+      "record_amount":2
+   }
+}
+```
 
 Currently supported HTTP GET query parameters are as listed:
 
@@ -117,7 +137,7 @@ For initializing the application be sure these variables are in place:
 
 ## Migrations
 
-DDL migrations (.sql files) should be placed under migrations\ddl and they'll be run when the application starts
+DDL migrations (.sql files) should be placed under migrations\ddl and they'll be run when the application starts.
 Prefix the migrations files as 001, 002, 003, ..., 999 and add a description with underscores.
 
 Example:
