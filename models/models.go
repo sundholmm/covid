@@ -88,10 +88,10 @@ func (queryParams QueryParams) ValidateQueryParams(ctx context.Context, db *sql.
 	if queryParams.Country != "" {
 		countries, err := getAllCountries(ctx, db)
 		if err != nil {
-			return RequestError{500, time.Now(), http.StatusText(500)}
+			return err
 		}
 		if !stringInSlice(queryParams.Country, countries) {
-			return RequestError{404, time.Now(), "Query parameter country not found"}
+			return RequestError{404, time.Now(), fmt.Sprintf("Query parameter country value \"%s\" not found", queryParams.Country)}
 		}
 	}
 
@@ -102,11 +102,11 @@ func (queryParams QueryParams) ValidateQueryParams(ctx context.Context, db *sql.
 	if queryParams.OrderBy != OrderByDate && queryParams.OrderBy != OrderByCasesWeekly &&
 		queryParams.OrderBy != OrderByDeathsWeekly && queryParams.OrderBy != OrderByCountry &&
 		queryParams.OrderBy != OrderByPopulation && queryParams.OrderBy != "" {
-		return RequestError{400, time.Now(), fmt.Sprintf("Invalid query parameter orderBy: %s", queryParams.OrderBy)}
+		return RequestError{400, time.Now(), fmt.Sprintf("Invalid query parameter orderBy value \"%s\"", queryParams.OrderBy)}
 	}
 
 	if queryParams.Order != OrderASC && queryParams.Order != OrderDesc && queryParams.Order != "" {
-		return RequestError{400, time.Now(), fmt.Sprintf("Invalid query parameter order: %s", queryParams.Order)}
+		return RequestError{400, time.Now(), fmt.Sprintf("Invalid query parameter order value \"%s\"", queryParams.Order)}
 	}
 
 	return nil
@@ -144,9 +144,11 @@ func (queryParams QueryParams) getQueryString() string {
 // getAllCountries returns all countries from the database that have records saved
 func getAllCountries(ctx context.Context, db *sql.DB) ([]string, error) {
 
+	requestError := RequestError{500, time.Now(), http.StatusText(500)}
+
 	rows, err := db.QueryContext(ctx, "SELECT DISTINCT LOWER(\"country\") FROM record;")
 	if err != nil {
-		return nil, err
+		return nil, requestError
 	}
 
 	defer rows.Close()
@@ -159,7 +161,7 @@ func getAllCountries(ctx context.Context, db *sql.DB) ([]string, error) {
 
 		err := rows.Scan(&country)
 		if err != nil {
-			return nil, err
+			return nil, requestError
 		}
 
 		countries = append(countries, country)
@@ -167,7 +169,7 @@ func getAllCountries(ctx context.Context, db *sql.DB) ([]string, error) {
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, err
+		return nil, requestError
 	}
 
 	return countries, nil
@@ -177,13 +179,15 @@ func getAllCountries(ctx context.Context, db *sql.DB) ([]string, error) {
 // GetRecords returns all records from the database
 func GetRecords(ctx context.Context, db *sql.DB, queryParams *QueryParams) (*RecordDTO, error) {
 
+	requestError := RequestError{500, time.Now(), http.StatusText(500)}
+
 	rows, err := db.QueryContext(ctx, "SELECT "+
 		"\"date\", \"year_week\", \"cases_weekly\", \"deaths_weekly\", \"country\", "+
 		"\"geo_id\", \"country_code\", \"population\", \"continent\", \"notification_rate\" "+
 		"FROM \"record\""+queryParams.getQueryString()+";")
 
 	if err != nil {
-		return nil, err
+		return nil, requestError
 	}
 
 	defer rows.Close()
@@ -208,7 +212,7 @@ func GetRecords(ctx context.Context, db *sql.DB, queryParams *QueryParams) (*Rec
 		)
 
 		if err != nil {
-			return nil, err
+			return nil, requestError
 		}
 
 		records = append(records, record)
@@ -216,7 +220,7 @@ func GetRecords(ctx context.Context, db *sql.DB, queryParams *QueryParams) (*Rec
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, err
+		return nil, requestError
 	}
 
 	recordDTO := RecordDTO{

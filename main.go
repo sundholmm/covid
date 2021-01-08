@@ -116,7 +116,8 @@ func getRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	if err != nil {
 		log.Println(err)
-		http.Error(w, http.StatusText(500), 500)
+		r := err.(models.RequestError)
+		http.Error(w, r.Error(), r.StatusCode)
 		return
 	}
 
