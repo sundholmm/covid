@@ -2,6 +2,12 @@
 
 Go REST API with underlying PostgreSQL database for handling COVID-19 records.
 
+- SQL Database Transactions
+- Multithreading
+- Pure Go
+
+## Installation
+
 ```
 $ git clone https://github.com/sundholmm/covid.git
 $ cd covid

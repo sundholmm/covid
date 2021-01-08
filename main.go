@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/joho/godotenv"
 
@@ -146,15 +147,23 @@ func postRecordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	for index, record := range recordDTO.Records {
-		err = record.Validate()
-		if err != nil {
-			log.Println(err)
-			http.Error(w, http.StatusText(400), 400)
-			return
-		}
-		log.Printf("Record #%d validate successful", index)
+	var wg sync.WaitGroup
+	wg.Add(len(recordDTO.Records))
+
+	for index := range recordDTO.Records {
+		go func(currentRecord models.Record, currenIndex int) {
+			defer wg.Done()
+			err = currentRecord.Validate()
+			if err != nil {
+				log.Println(err)
+				http.Error(w, http.StatusText(400), 400)
+				return
+			}
+			log.Printf("Record #%d validate successful", currenIndex)
+		}(recordDTO.Records[index], index)
 	}
+
+	wg.Wait()
 
 	err = models.SaveRecords(ctx, db, recordDTO)
 	if err != nil {
