@@ -165,5 +165,5 @@ Example:
 Can be applied to the database by running the application and then executing:
 
 ```
-$ python utils\migrate.py
+$ cd utils && python migrate.py
 ```
