@@ -25,16 +25,16 @@ type Metadata struct {
 
 // Record struct for a single record
 type Record struct {
-	Date             string `json:"dateRep" validate:"required"`
-	YearWeek         string `json:"year_week" validate:"required"`
-	CasesWeekly      *int   `json:"cases_weekly,omitempty"`
-	DeathsWeekly     *int   `json:"deaths_weekly,omitempty"`
-	Country          string `json:"countriesAndTerritories" validate:"required"`
-	GeoID            string `json:"geoId" validate:"required"`
-	CountryCode      string `json:"countryterritoryCode"`
-	Population       int    `json:"popData2019"`
-	Continent        string `json:"continentExp" validate:"required"`
-	NotificationRate string `json:"notification_rate_per_100000_population_14-days,omitempty"`
+	Date             string  `json:"dateRep" validate:"required"`
+	YearWeek         string  `json:"year_week" validate:"required"`
+	CasesWeekly      *int    `json:"cases_weekly,omitempty"`
+	DeathsWeekly     *int    `json:"deaths_weekly,omitempty"`
+	Country          string  `json:"countriesAndTerritories" validate:"required"`
+	GeoID            string  `json:"geoId" validate:"required"`
+	CountryCode      *string `json:"countryterritoryCode,omitempty"`
+	Population       *int    `json:"popData2019,omitempty"`
+	Continent        string  `json:"continentExp" validate:"required"`
+	NotificationRate *string `json:"notification_rate_per_100000_population_14-days,omitempty"`
 }
 
 // RequestError represents an error with an associated HTTP status code, time of the event and an error string
